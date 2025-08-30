@@ -4,9 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { ipfsToHttp } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
-import { ChevronsUpDown } from "lucide-react";
+import { ShoppingCart, ChevronsUpDown } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { useClaimNFT } from "@/hooks/useClaimNFT";
 
 interface NFTDetailsProps {
   data: {
@@ -26,6 +26,10 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [style, setStyle] = useState<React.CSSProperties>({ '--x': '-20%', '--y': '-20%' } as React.CSSProperties);
   const [descOpen, setDescOpen] = useState(true);
+
+  const { claim, isLoading, error, isSuccess } = useClaimNFT({
+    tokenId: data.tokenId,
+  });
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     const el = cardRef.current;
@@ -150,10 +154,23 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
               <p className="text-lg font-semibold">
                 {data.price_amount ? `${data.price_amount} ETH` : '—'}
               </p>
+              {error && (
+                <p className="mt-1 text-xs text-red-400 max-w-[220px] break-words">
+                  {error}
+                </p>
+              )}
+              {isSuccess && (
+                <p className="mt-1 text-xs text-emerald-400">Claimed!</p>
+              )}
             </div>
-            <Button size="lg" disabled={!data.price_amount} className="gap-2">
+            <Button
+              size="lg"
+              disabled={!data.price_amount || isLoading}
+              className="gap-2"
+              onClick={() => claim()}
+            >
               <ShoppingCart className="w-4 h-4" />
-              Buy
+              {isLoading ? 'Claiming...' : 'Buy'}
             </Button>
           </div>
         </CardContent>
