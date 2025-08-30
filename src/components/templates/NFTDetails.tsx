@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { ipfsToHttp } from "@/lib/utils";
 import Image from "next/image";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, ChevronsUpDown } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useClaimNFT } from "@/hooks/useClaimNFT";
+import { toast } from 'sonner';
+import { useGetPrice } from "@/hooks/useGetPrice";
 
 interface NFTDetailsProps {
   data: {
@@ -31,6 +33,27 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
     tokenId: data.tokenId,
   });
 
+  // Toast lifecycle handling
+  const toastIdRef = useRef<string | number | undefined>(undefined);
+  useEffect(() => {
+    // Start loading toast
+    if (isLoading) {
+      toastIdRef.current = toast.loading(`Claiming ${data.name || 'NFT'}`, { id: toastIdRef.current });
+    }
+  }, [isLoading, data.name, data.tokenId]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, { id: toastIdRef.current || `claim-${data.tokenId}` });
+    }
+  }, [error, data.tokenId]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success(`Successfully claimed! You can view it in your collections.`, { id: toastIdRef.current || `claim-${data.tokenId}` } );
+    }
+  }, [isSuccess, data.tokenId]);
+
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     const el = cardRef.current;
     if (!el) return;
@@ -49,6 +72,12 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
   const handleLeave = useCallback(() => {
     setStyle({ transform: 'rotateX(0deg) rotateY(0deg) scale(1)', '--x': '-20%', '--y': '-20%' } as React.CSSProperties);
   }, []);
+
+  console.log(data);
+
+  // On-chain dynamic claim condition price
+  const { price, loading: priceLoading, error: priceErr, maxClaimableSupply, supplyClaimed } = useGetPrice({ tokenId: data.tokenId });
+  const remaining = (maxClaimableSupply && supplyClaimed !== null) ? (maxClaimableSupply - supplyClaimed) : null;
 
   return (
     <div className="grid lg:grid-cols-2 gap-10">
@@ -94,17 +123,9 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
 
       <div className="flex flex-col gap-2">
       <Card className="bg-background/40 backdrop-blur border-white/10">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">
-            {data.name} <span className="text-sm font-normal text-muted-foreground">#{data.tokenId}</span>
-          </CardTitle>
-          <CardDescription className="text-xs uppercase tracking-wider">
-            Supply: {data.supply || '—'}
-          </CardDescription>
+        <CardHeader>
+          <CardTitle className="text-2xl">{data.name}</CardTitle>
         </CardHeader>
-      </Card>
-
-      <Card className="bg-background/40 backdrop-blur border-white/10">
         <CardContent className="space-y-6">
           <Collapsible open={descOpen} onOpenChange={setDescOpen}>
             <div className="flex items-center justify-between">
@@ -122,38 +143,28 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
               </div>
             </CollapsibleContent>
           </Collapsible>
-          {data.attributes && data.attributes.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {data.attributes.map((a, i) => (
-                <div key={i} className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{a.trait_type}</p>
-                  <p className="text-sm font-medium">{a.value as any}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
 
       <Card className="bg-background/40 backdrop-blur border-white/10">
         <CardContent className="space-y-6">
-          {data.attributes && data.attributes.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {data.attributes.map((a, i) => (
-                <div key={i} className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{a.trait_type}</p>
-                  <p className="text-sm font-medium">{a.value as any}</p>
-                </div>
-              ))}
-            </div>
-          )}
 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Price</p>
-              <p className="text-lg font-semibold">
-                {data.price_amount ? `${data.price_amount} ETH` : '—'}
+              <p className="text-lg font-semibold min-h-[1.75rem]">
+                {priceLoading ? '…' : price ? `${price} ETH` : '—'}
               </p>
+              {remaining !== null && (
+                <p className="text-[11px] text-muted-foreground">Remaining: {
+                  remaining === null ? '—' : remaining > 99 ? '99+' : remaining.toString()
+                }</p>
+              )}
+              {priceErr && (
+                <p className="mt-1 text-xs text-red-400 max-w-[220px] break-words">
+                  {priceErr}
+                </p>
+              )}
               {error && (
                 <p className="mt-1 text-xs text-red-400 max-w-[220px] break-words">
                   {error}
@@ -165,12 +176,11 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
             </div>
             <Button
               size="lg"
-              disabled={!data.price_amount || isLoading}
+              disabled={priceLoading || !price || isLoading}
               className="gap-2"
-              onClick={() => claim()}
+              onClick={() => { claim(); }}
             >
-              <ShoppingCart className="w-4 h-4" />
-              {isLoading ? 'Claiming...' : 'Buy'}
+              {priceLoading ? 'Loading…' : !price ? 'Coming Soon' : (isLoading ? 'Claiming…' : 'Claim')}
             </Button>
           </div>
         </CardContent>

@@ -43,7 +43,6 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
 
       if (!publicClient) throw new Error('Public client unavailable');
 
-      // 1. Get active claim condition id for this token
       const activeId: bigint = await publicClient.readContract({
         address: CONTRACT_ADDRESS,
         abi: ABI as any,
@@ -51,7 +50,6 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
         args: [BigInt(tokenId)],
       }) as any;
 
-      // 2. Fetch the condition struct
       const condition: any = await publicClient.readContract({
         address: CONTRACT_ADDRESS,
         abi: ABI as any,

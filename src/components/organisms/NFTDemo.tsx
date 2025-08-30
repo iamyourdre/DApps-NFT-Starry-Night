@@ -10,6 +10,7 @@ import { InfoIcon } from "lucide-react";
 import Image from "next/image";
 import Loading from "../atoms/Loading";
 import { useRef, useState, useCallback } from "react";
+import { useGetPrice } from "@/hooks/useGetPrice";
 
 interface NFTDemoProps {
   id: number;
@@ -54,7 +55,7 @@ export function NFTDemo(
     } as React.CSSProperties);
   }, []);
 
-  console.log(data);
+  const { price, loading: priceLoading, error: priceError } = useGetPrice({ tokenId: id });
 
   return (
     <div
@@ -115,13 +116,13 @@ export function NFTDemo(
             <Button variant="outline">
               <InfoIcon />
             </Button>
-            <Button variant="outline" className="flex-1">
-              {data?.price_amount ? (
-                <p className="tracking-tight">
-                  <b>{data.price_amount}</b> ETH
-                </p>
-              ) : (
-                <Loading />
+            <Button variant="outline" className="flex-1" disabled={priceLoading}>
+              {priceLoading && <Loading />}
+              {!priceLoading && price && (
+                <p className="tracking-tight"><b>{price}</b> ETH</p>
+              )}
+              {!priceLoading && !price && (
+                <p className="tracking-tight">??? ETH</p>
               )}
             </Button>
           </div>
