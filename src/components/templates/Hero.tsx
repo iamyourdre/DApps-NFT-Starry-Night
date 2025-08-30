@@ -12,14 +12,15 @@ import { toast } from 'sonner';
 const Hero = ({contractData, contractLoading} : 
   {contractData: any, contractLoading: boolean}
 ) => {
-  const {data: nftData, loading: nftLoading, error: nftError} = useGetURI({ _tokenId: 0 });
+  const highlightedId = 0;
+  const {data: nftData, loading: nftLoading, error: nftError} = useGetURI({ _tokenId: highlightedId });
   if (nftError) {
     toast.error('Failed to load NFT data. Please try again later.');
   }
   return (
     <div className="box">
-      <div className="grid grid-cols-10 gap-8">
-        <div className="col-span-10 lg:col-span-6 min-h-screen pt-28 md:py-0 flex flex-col justify-center items-center lg:items-start gap-3">
+      <div className="grid grid-cols-10 gap-12 lg:gap-20">
+        <div className="col-span-10 md:col-span-6 md:py-0 flex flex-col items-center lg:items-start gap-3">
           <Badge variant={'secondary'} className='rounded-full px-3 text-base'>Collectible NFTs</Badge>
           <div className="py-6 text-center lg:text-left">
             <h1 className='mb-4 text-5xl md:text-6xl lg:text-7xl font-bold text-balance'>
@@ -31,19 +32,17 @@ const Hero = ({contractData, contractLoading} :
               Get your early access to the exclusive ${contractData && contractData.symbol} before the public sale. Be part of {contractData && contractData.name} early adopters and get future benefits!
             </h2>
           </div>
-          <div className='py-8'>
-            <Button className="py-6 rounded-full px-6!" asChild>
-              <a href="/collections">
-                <ScanSearch /> Explore Collections
-              </a>
-            </Button>
-          </div>
+          <Button className="py-6 rounded-full px-6!" asChild>
+            <a href="/collections">
+              <ScanSearch /> Explore Collections
+            </a>
+          </Button>
         </div>
-        <div className="col-span-10 md:col-span-4 min-h-auto md:min-h-screen flex flex-col justify-center items-center">
+        <div className="col-span-10 md:col-span-4 min-h-auto pb-12 flex flex-col items-center">
           {nftLoading ?
             <Loading /> :
             <div className="max-w-xs animate-in fade-in duration-1000">
-              <NFTDemo data={nftData} id={0} />
+              <NFTDemo data={nftData} id={highlightedId} />
             </div>
           }
         </div>

@@ -23,7 +23,7 @@ interface NFTDemoProps {
 }
 
 export function NFTDemo(
-  { data }: NFTDemoProps
+  { id, data }: NFTDemoProps
 ) {
   const imageUrl = ipfsToHttp(data?.image || '');
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -58,10 +58,10 @@ export function NFTDemo(
 
   return (
     <div
-      className="relative [perspective:900px]"
+      className="relative [perspective:900px] cursor-pointer"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      onClick={() => { window.location.href = '/nft/1'; } }
+      onClick={() => { window.location.href = '/nft/' + id }}
     >
       <Card
         ref={cardRef}

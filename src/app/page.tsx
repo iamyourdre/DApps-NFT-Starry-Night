@@ -7,17 +7,22 @@ import { useGetContractURI } from "@/hooks/useGetContractURI";
 import { useGetURI } from "@/hooks/useGetURI";
 import Error from "next/error";
 import { toast } from "sonner";
+import { useEffect, useRef } from 'react';
 
 export default function Home() {
   const {data, loading, error} = useGetContractURI();
-  if (loading) {
+  const errorToastedRef = useRef(false);
+
+  if (loading || (!data && !error)) {
     return <LoadingPage />;
-  } else if (data) {
+  }
+
+  if (data) {
     return (
       <div className="bg-cover"
         style={{ backgroundImage: `url('images/grainy-blur.png')` }}
       >
-        <div className="bg-background/60 w-full h-full">
+        <div className="bg-background/60 w-full h-full min-h-screen pt-30">
           <Hero 
             contractData={data}
             contractLoading={loading}
@@ -25,8 +30,15 @@ export default function Home() {
         </div>
       </div>
     );
-  } else if (error) {
-    toast.error('Failed to load contract data. Please try again later.');
-    return <Error statusCode={520} />;
   }
+
+  if (error && !errorToastedRef.current) {
+    errorToastedRef.current = true;
+    toast.error('Failed to load contract data. Please try again later.');
+  }
+  if (error) {
+    return <Error statusCode={500} />;
+  }
+
+  return <LoadingPage />;
 }
