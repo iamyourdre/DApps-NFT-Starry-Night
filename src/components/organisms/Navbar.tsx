@@ -48,7 +48,7 @@ const Navbar = ({
     title: "NFTDROP",
   },
   menu = [
-    { title: "Home", url: "#" },
+    { title: "Home", url: "/" },
     {
       title: "Docs",
       url: "#",

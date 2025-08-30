@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { toast } from 'sonner';
+import { Eye, SquareLibrary, Unlink } from 'lucide-react';
 
 interface ConnectWalletProps {
   className?: string;
@@ -100,14 +101,29 @@ const ConnectWallet = ({
           </div>
         ) : (
           <div className='grid grid-cols-2 gap-2'>
-            <Button onClick={() => {
-              disconnect()
-              setIsDialogOpen(false)
-            }} disabled={!address} variant={'destructive'}>
-              Disconnect
+            <Button 
+            className='col-span-2 bg-white'
+              onClick={() => window.open('/collections')}
+              disabled={!address}
+            >
+              <SquareLibrary /> My Collections
             </Button>
-            <Button onClick={() => window.open(`https://sepolia.etherscan.io/address/${address}`, '_blank')} disabled={!address} variant={'outline'}>
-              View on Etherscan
+            <Button 
+              onClick={() => {
+                disconnect()
+                setIsDialogOpen(false)
+              }} 
+              disabled={!address}
+              variant={'destructive'}
+            >
+              <Unlink /> Disconnect
+            </Button>
+            <Button 
+              onClick={() => window.open(`https://sepolia.etherscan.io/address/${address}`, '_blank')}
+              disabled={!address}
+              variant={'outline'}
+            >
+              <Eye /> Etherscan
             </Button>
           </div>
         )}

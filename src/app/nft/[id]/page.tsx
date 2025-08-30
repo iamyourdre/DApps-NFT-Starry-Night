@@ -25,7 +25,7 @@ export default function NftDetail() {
 
   if (nftData) {
     return (
-      <div className="bg-cover min-h-screen pt-18" style={{ backgroundImage: `url('/images/grainy-blur.png')` }}>
+      <div className="bg-cover min-h-screen pt-24" style={{ backgroundImage: `url('/images/grainy-blur.png')` }}>
         <div className="bg-background/70 min-h-screen">
           <div className="max-w-5xl mx-auto px-4 py-10">
             <NFTDetails data={nftData} />
