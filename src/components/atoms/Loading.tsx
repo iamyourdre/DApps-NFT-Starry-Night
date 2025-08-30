@@ -5,12 +5,10 @@ interface LoadingProps {
   message?: string;
 }
 
-const Loading = ({
-  message = "Loading..."
-}: LoadingProps) => {
+const Loading = () => {
   return (
     <>
-      <LoaderCircle className='animate-spin' /> {message}
+      <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-cyan-400"></div>
     </>
   )
 }

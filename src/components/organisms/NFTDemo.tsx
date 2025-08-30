@@ -6,23 +6,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ipfsToHttp } from "@/lib/utils";
-import { Info, InfoIcon, ShoppingCart } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import Image from "next/image";
 import Loading from "../atoms/Loading";
 import { useRef, useState, useCallback } from "react";
 
-// {
-//     "attributes": [],
-//     "background_color": "",
-//     "description": "The First Edition of Starry Night marks the genesis of a digital collection inspired by the eternal dialogue between art and the cosmos. This piece captures the swirling motion of stars and the stillness of night, brought to life with a modern digital form that bridges classic artistry and blockchain permanence.\n\nOwning the First Edition means holding the origin point—the rarest entry in the series—where imagination, light, and timeless beauty converge. A collector’s cornerstone, this NFT embodies not just aesthetic wonder, but also historical significance as the foundation of all future Starry Night editions.\n\n🔹 Edition: First / Genesis\n🔹 Medium: Digital Art NFT\n🔹 Utility: Exclusive access to upcoming drops & collectors’ community",
-//     "image": "ipfs://QmVb6Q94sXa4LyLr9TTMp7F8mN3D1q71A8D5qxokPeR9gJ/0.jpeg",
-//     "name": "Starry Night - 1st Edition",
-//     "price_amount": "0.005",
-//     "price_currency": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-//     "supply": "20"
-// }
-
 interface NFTDemoProps {
+  id: number;
   data: {
     name?: string;
     description?: string;
@@ -64,11 +54,14 @@ export function NFTDemo(
     } as React.CSSProperties);
   }, []);
 
+  console.log(data);
+
   return (
     <div
       className="relative [perspective:900px]"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
+      onClick={() => { window.location.href = '/nft/1'; } }
     >
       <Card
         ref={cardRef}

@@ -7,23 +7,15 @@ import { Badge } from '../ui/badge';
 import { NFTDemo } from '../organisms/NFTDemo';
 import { useGetURI } from '@/hooks/useGetURI';
 import Loading from '../atoms/Loading';
+import { toast } from 'sonner';
 
-const Hero = ({contractData, contractLoading, nftData, nftLoading} : 
-  {contractData: any, contractLoading: boolean, nftData: any, nftLoading: boolean}
+const Hero = ({contractData, contractLoading} : 
+  {contractData: any, contractLoading: boolean}
 ) => {
-
-//   {
-//     "description": "A digital reimagining of timeless beauty, Starry Night NFT captures the infinite depth of the cosmos with swirls of light, motion, and mystery. Each brushstroke is reborn in the blockchain era—turning fleeting starlight into a permanent digital masterpiece.\n\nThis NFT is more than just art; it’s an experience. The night sky shimmers with animated detail, revealing hidden constellations and subtle transitions as you interact with it. Holders of Starry Night NFT gain not only a unique piece of digital history, but also a symbolic reminder that even in darkness, brilliance shines through.",
-//     "fee_recipient": "0x0Fecc4DD1fC3E9708Ed94FE6330d5d5D1e730a26",
-//     "image": "ipfs://QmQiaMMRx4GLS3LWDmrz7fnxgtprocaQF9yFrgZ3wNBuJL/download%20(3).jpeg",
-//     "name": "Starry Night NFT",
-//     "seller_fee_basis_points": "0",
-//     "social_urls": {
-//         "Website": "https://iamyourdre.vercel.app/"
-//     },
-//     "symbol": "SNFT"
-// }
-
+  const {data: nftData, loading: nftLoading, error: nftError} = useGetURI({ _tokenId: 0 });
+  if (nftError) {
+    toast.error('Failed to load NFT data. Please try again later.');
+  }
   return (
     <div className="box">
       <div className="grid grid-cols-10 gap-8">
@@ -50,8 +42,8 @@ const Hero = ({contractData, contractLoading, nftData, nftLoading} :
         <div className="col-span-10 md:col-span-4 min-h-auto md:min-h-screen flex flex-col justify-center items-center">
           {nftLoading ?
             <Loading /> :
-            <div className="max-w-xs">
-              <NFTDemo data={nftData} />
+            <div className="max-w-xs animate-in fade-in duration-1000">
+              <NFTDemo data={nftData} id={0} />
             </div>
           }
         </div>
