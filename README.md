@@ -1,36 +1,160 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NFT Starry Night
 
-## Getting Started
+> A narrative-driven ERC‑1155 Drop dApp for claiming and exploring limited digital collectibles.
 
-First, run the development server:
+## Prologue: The Night Before the Mint
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Imagine a vault of star‑framed artifacts hovering on a testnet sky. Some are unclaimed lights; some already burn with ownership. This repository is the lantern that lets users discover, preview, and claim those stars before the constellation is complete.
+
+You arrive at the landing page. A single highlighted NFT spins with reactive light. The presale is alive. You connect your wallet. You explore. You claim. You revisit your personal gallery. The story is minimal, but the interaction loop is crisp.
+
+## Act I: Core Idea
+
+Provide:
+- A smooth UX for exploring ERC1155 drop tokens.
+- A real‑time price + supply driven claim button.
+- A collection view of owned tokens.
+- A tactile, animated card interface.
+- Lightweight extensibility for future phases (allowlists, tiers, reveal mechanics).
+
+## Act II: The Stack
+
+| Layer | Purpose |
+|-------|---------|
+| Next.js / App Router | UI + routing |
+| React / TypeScript | Components & state |
+| wagmi + viem | Smart contract reads/writes |
+| Sonner | Toast feedback |
+| Tailwind CSS + utility classes | Styling |
+| Lucide Icons | Iconography |
+| ERC1155 Drop Contract (custom ABI) | Mint / claim logic |
+
+Environment variable:
+```
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xYourDrop1155Address
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Act III: User Journey
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Landing (Hero): Animated highlight NFT + CTA to Explore.
+2. Explore (/listed): Grid of claimable NFTs (NFTListedCard) with dynamic tilt, price, progress bar.
+3. NFT Details (/nft/[id]): Large preview, description toggle, on-chain price & remaining supply, claim button with toast lifecycle.
+4. Collections (/collections): Personalized gallery fetched via balance queries + metadata.
+5. Feedback: Toasters for claim lifecycle (loading → success / error).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Act IV: Smart Contract (High-Level)
 
-## Learn More
+An ERC1155 Drop pattern supporting:
+- Lazy mint batches.
+- Claim conditions (start time, price, currency, per-wallet limit, merkle root, max claimable supply).
+- Per-token totalSupply + maxTotalSupply tracking.
+- Royalty + platform + primary sale configuration.
 
-To learn more about Next.js, take a look at the following resources:
+The frontend reads:
+- uri(tokenId) → metadata (IPFS → HTTP gateway transform).
+- getClaimConditionById / active condition components (wrapped in a consolidated hook).
+- totalSupply, maxTotalSupply, pricing data.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Act V: Key Hooks
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Hook | Role |
+|------|------|
+| `useGetURI` | Resolve metadata JSON for a tokenId. |
+| `useGetPrice` | Derive active claim condition data (price, remaining, supply). |
+| `useClaimNFT` | Executes claim transaction with proper args + toast lifecycle. |
+| `useUserCollections` | Fetch owned token balances + metadata (for gallery). |
 
-## Deploy on Vercel
+Each hook returns `{ data / price, loading, error }` shape to keep UI predictable.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Act VI: Components (Highlights)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `NFTDemo` / `NFTListedCard`: Interactive tilt, radial light pointer tracking.
+- `NFTDetails`: Full-screen detail + claim pane.
+- `Hero`: Entry narrative + featured token preview.
+- `CollectionsPage`: Ownership showcase.
+- `Navbar` & (planned) `Footer`: Shell layout.
+- Reusable `Button`, `Card`, `Collapsible` primitives from a UI kit pattern.
+
+## Act VII: Getting Started
+
+Prerequisites:
+- Node 18+
+- PNPM (recommended) or Yarn / npm
+- A deployed ERC1155 Drop (Sepolia by default)
+- Wallet (e.g. MetaMask) pointed to the same network
+
+Install:
+```
+pnpm install
+```
+
+Env:
+```
+cp .env.example .env.local
+# set NEXT_PUBLIC_CONTRACT_ADDRESS
+```
+
+Run dev:
+```
+pnpm dev
+```
+
+Open:
+```
+http://localhost:3000
+```
+
+---
+
+## Act VIII: Deployment
+
+Typical flow (Vercel):
+1. Set `NEXT_PUBLIC_CONTRACT_ADDRESS` in project settings.
+2. Push main branch.
+3. Verify network (e.g., Sepolia).
+4. Test claim with a funded wallet.
+
+## Act IX: Extensibility Ideas
+
+- Allowlist gating (Merkle root integration).
+- Quantity selector before claim.
+- Multi-currency pricing display.
+- Reveal phases (placeholder → unveiled art).
+- Activity feed (transfer / claim events).
+- Analytics panel (mint velocity, wallet distribution).
+- Dark/light theming toggle.
+
+## Act X: Defensive UX Patterns
+
+| Concern | Mitigation |
+|---------|------------|
+| Price race condition | Re-query price before enabling claim. |
+| Partial metadata loads | Skeleton + graceful fallback text. |
+| Transaction confusion | Toast lifecycle (loading → success/fail). |
+| Pointer thrash | Throttled transform updates (fast but contained). |
+
+## Epilogue
+
+This is a scaffold for an experiential mint surface: polished enough to use, open enough to reshape. Fork it, point it at your own contract, and let new constellations form.
+
+Stars are just metadata until someone claims them.
+
+## Quick Commands
+
+```
+pnpm dev      # local dev
+pnpm build    # production build
+pnpm start    # serve build
+```
+
+## License
+
+MIT (see LICENSE if added). Use freely; attribution appreciated.
+
+## Contact
+
+- GitHub: https://github.com/iamyourdre/NFT-Starry-Night
+- LinkedIn: https://linkedin.com/in/iamyourdre
+- Email: adriansutansaty260403@gmail.com
+
+Enjoy the mint.
