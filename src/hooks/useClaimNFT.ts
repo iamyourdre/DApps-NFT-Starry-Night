@@ -14,6 +14,17 @@ interface ClaimOptions {
   receiver?: `0x${string}`;
 }
 
+interface ClaimCondition {
+  startTimestamp: bigint;
+  maxClaimableSupply: bigint;
+  supplyClaimed: bigint;
+  quantityLimitPerWallet: bigint;
+  merkleRoot: `0x${string}`;
+  pricePerToken: bigint;
+  currency: `0x${string}`;
+  metadata?: unknown; // adjust if your struct differs
+}
+
 export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -43,19 +54,19 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
 
       if (!publicClient) throw new Error('Public client unavailable');
 
-      const activeId: bigint = await publicClient.readContract({
+      const activeId = await publicClient.readContract({
         address: CONTRACT_ADDRESS,
-        abi: ABI as any,
+        abi: ABI,
         functionName: 'getActiveClaimConditionId',
         args: [BigInt(tokenId)],
-      }) as any;
+      }) as bigint;
 
-      const condition: any = await publicClient.readContract({
+      const condition = await publicClient.readContract({
         address: CONTRACT_ADDRESS,
-        abi: ABI as any,
+        abi: ABI,
         functionName: 'getClaimConditionById',
         args: [BigInt(tokenId), activeId],
-      });
+      }) as ClaimCondition;
 
       if (!condition) throw new Error('No active claim condition found');
 
@@ -87,7 +98,7 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
       try {
         await publicClient.simulateContract({
           address: CONTRACT_ADDRESS,
-          abi: ABI as any,
+          abi: ABI,
           functionName: 'claim',
           args: [
             receiver,
@@ -101,15 +112,23 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
           value,
           account: address as `0x${string}`,
         });
-      } catch (simErr: any) {
+      } catch (simErr: unknown) {
         // eslint-disable-next-line no-console
         console.error('[claim] simulate failed', simErr);
-        throw new Error(simErr?.shortMessage || simErr?.message || 'Simulation failed');
+        const simMsg =
+          typeof simErr === 'object' && simErr !== null && 'shortMessage' in simErr
+            ? (simErr as { shortMessage?: string; message?: string }).shortMessage ||
+              (simErr as { message?: string }).message ||
+              'Simulation failed'
+            : simErr instanceof Error
+              ? simErr.message
+              : 'Simulation failed';
+        throw new Error(simMsg);
       }
 
       const hash = await walletClient.writeContract({
         address: CONTRACT_ADDRESS,
-        abi: ABI as any,
+        abi: ABI,
         functionName: 'claim',
         args: [
           receiver,
@@ -127,10 +146,23 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status === 'success') setIsSuccess(true); else setError('Transaction failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       // eslint-disable-next-line no-console
       console.error('[claim] error', e);
-      const msg: string = e?.shortMessage || e?.message || '';
+      let msg = '';
+      if (typeof e === 'object' && e !== null) {
+        if ('shortMessage' in e) {
+          msg =
+            (e as { shortMessage?: string; message?: string }).shortMessage ||
+            (e as { message?: string }).message ||
+            '';
+        } else if ('message' in e) {
+          msg = (e as { message?: string }).message || '';
+        }
+      } else if (e instanceof Error) {
+        msg = e.message;
+      }
+
       if (/DropClaimInvalidTokenPrice/i.test(msg)) {
         setError('Price or currency mismatch with active claim condition. Refresh metadata or verify dashboard settings.');
       } else if (/DropClaimNotStarted/i.test(msg)) {

@@ -1,23 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAccount, usePublicClient } from 'wagmi';
+import type { Abi } from 'viem';
 import ABI from '../config/ABI.json';
 import { ipfsToHttp } from '../lib/utils';
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
+const contractAbi = ABI as unknown as Abi;
+
+interface TokenMetadata {
+  name?: string;
+  description?: string;
+  image?: string;
+  [key: string]: unknown;
+}
 
 export interface UserNFTMetadata {
   id: number;
   balance: bigint;
-  // Raw fetched JSON (standard ERC1155 metadata fields)
-  metadata: any;
+  metadata: TokenMetadata | null;
   name?: string;
   description?: string;
   image?: string;
+  error?: string;
 }
 
 interface UseUserCollectionsOptions {
-  fetchMetadata?: boolean; // default true
-  refreshIntervalMs?: number; // optional auto refresh
+  fetchMetadata?: boolean;
+  refreshIntervalMs?: number;
 }
 
 export function useUserCollections(options: UseUserCollectionsOptions = {}) {
@@ -35,22 +44,20 @@ export function useUserCollections(options: UseUserCollectionsOptions = {}) {
     setLoading(true);
     setError(null);
     try {
-      // 1. Get nextTokenIdToMint to know range of token ID
       const nextId = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: ABI as any,
+        abi: contractAbi,
         functionName: 'nextTokenIdToMint',
         args: [],
       }) as bigint;
 
-      const totalMinted = Number(nextId); // token ids are 0..nextId-1
+      const totalMinted = Number(nextId);
       if (totalMinted === 0) {
         setItems([]);
         setLastUpdated(new Date());
         return;
       }
 
-      // 2. Build arrays for balanceOfBatch
       const ids: bigint[] = [];
       const accounts: `0x${string}`[] = [];
       for (let i = 0; i < totalMinted; i++) {
@@ -60,12 +67,11 @@ export function useUserCollections(options: UseUserCollectionsOptions = {}) {
 
       const balances = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: ABI as any,
+        abi: contractAbi,
         functionName: 'balanceOfBatch',
         args: [accounts, ids],
       }) as bigint[];
 
-      // 3. Filter owned ids
       const owned: { id: number; balance: bigint }[] = [];
       balances.forEach((b, idx) => {
         if (b && b > BigInt(0)) owned.push({ id: idx, balance: b });
@@ -77,66 +83,82 @@ export function useUserCollections(options: UseUserCollectionsOptions = {}) {
         return;
       }
 
-      // 4. Fetch metadata URIs for owned ids concurrently (limit concurrency if large)
       const concurrency = 5;
       const results: UserNFTMetadata[] = [];
-      let index = 0;
+      let idx = 0;
 
       async function worker() {
-        while (index < owned.length) {
-          const current = owned[index++];
+        while (true) {
+          const currentIndex = idx++;
+          if (currentIndex >= owned.length) break;
+          const current = owned[currentIndex];
+          const base: UserNFTMetadata = {
+            id: current.id,
+            balance: current.balance,
+            metadata: null,
+          };
           try {
-            if (!publicClient) return; // safety
+            if (!publicClient) {
+              results.push(base);
+              continue;
+            }
             const uriRaw = await publicClient.readContract({
               address: CONTRACT_ADDRESS as `0x${string}`,
-              abi: ABI as any,
+              abi: contractAbi,
               functionName: 'uri',
               args: [BigInt(current.id)],
             }) as string;
+
             const uri = ipfsToHttp(uriRaw);
-            let json: any = null;
+            let json: TokenMetadata | null = null;
             try {
               const res = await fetch(uri);
-              json = await res.json();
-            } catch (fetchErr) {
-              // ignore fetch error, still return minimal item
+              if (res.ok) {
+                json = await res.json() as TokenMetadata;
+              }
+            } catch {
+              // ignore metadata fetch error
             }
             results.push({
-              id: current.id,
-              balance: current.balance,
+              ...base,
               metadata: json,
               name: json?.name,
               description: json?.description,
               image: json?.image,
             });
-          } catch (innerErr) {
-            // push partial entry
-            results.push({ id: current.id, balance: current.balance, metadata: null });
+          } catch (readErr: unknown) {
+            const msg =
+              typeof readErr === 'object' && readErr && 'message' in readErr
+                ? String((readErr as { message?: unknown }).message)
+                : 'Read error';
+            results.push({ ...base, error: msg });
           }
         }
       }
 
-      const workers = Array.from({ length: Math.min(concurrency, owned.length) }, () => worker());
-      await Promise.all(workers);
+      await Promise.all(
+        Array.from({ length: Math.min(concurrency, owned.length) }, () => worker()),
+      );
 
-      // Preserve original order (sort by id)
       results.sort((a, b) => a.id - b.id);
       setItems(results);
       setLastUpdated(new Date());
-    } catch (e: any) {
-      setError(e.message || 'Failed to load user collections');
+    } catch (e: unknown) {
+      const msg =
+        typeof e === 'object' && e && 'message' in e
+          ? String((e as { message?: unknown }).message)
+          : 'Failed to load user collections';
+      setError(msg);
       setItems([]);
     } finally {
       setLoading(false);
     }
   }, [address, publicClient, fetchMetadata]);
 
-  // Initial + address change
   useEffect(() => {
     load();
   }, [load]);
 
-  // Optional polling
   useEffect(() => {
     if (!refreshIntervalMs) return;
     const id = setInterval(load, refreshIntervalMs);

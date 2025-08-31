@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePublicClient } from 'wagmi';
+import type { Abi } from 'viem';
 import ABI from '../config/ABI.json';
 import { ipfsToHttp } from '../lib/utils';
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
+const contractAbi = ABI as unknown as Abi;
 
 export interface NFTSeriesItem {
   id: number;
   uri?: string | null;
-  metadata?: any; // raw json
+  metadata?: unknown; // raw json
   name?: string;
   description?: string;
   image?: string;
@@ -66,12 +68,12 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
     try {
       const nextId = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: ABI as any,
+        abi: contractAbi,
         functionName: 'nextTokenIdToMint',
         args: [],
       }) as bigint;
       return Number(nextId);
-    } catch (e) {
+    } catch {
       return 0;
     }
   }, [publicClient]);
@@ -105,7 +107,7 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
       const pageResults: NFTSeriesItem[] = idsRange.map(id => ({ id, metadata: undefined, uri: undefined }));
 
       if (!fetchMetadata && !includeSupply) {
-        setItems(prev => replace ? pageResults : [...prev, ...pageResults]);
+        setItems(prev => (replace ? pageResults : [...prev, ...pageResults]));
         setHasMore(endExclusive < minted);
         return;
       }
@@ -117,8 +119,8 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
       async function worker() {
         while (queue.length) {
           const id = queue.shift();
-          if (id === undefined) break;
-            if (!publicClient) break;
+            if (id === undefined) break;
+          if (!publicClient) break;
           let item: NFTSeriesItem = { id };
           try {
             // uri
@@ -126,12 +128,16 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
             try {
               uriRaw = await publicClient.readContract({
                 address: CONTRACT_ADDRESS as `0x${string}`,
-                abi: ABI as any,
+                abi: contractAbi,
                 functionName: 'uri',
                 args: [BigInt(id)],
               }) as string;
-            } catch (uriErr: any) {
-              item.error = uriErr?.message || 'uri() failed';
+            } catch (uriErr: unknown) {
+              const msg =
+                typeof uriErr === 'object' && uriErr && 'message' in uriErr
+                  ? String((uriErr as { message?: unknown }).message)
+                  : 'uri() failed';
+              item.error = msg;
             }
             const uri = uriRaw ? ipfsToHttp(uriRaw) : null;
             item.uri = uri;
@@ -139,13 +145,20 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
             if (fetchMetadata && uri) {
               try {
                 const resp = await fetch(uri);
-                const json = await resp.json();
+                const json = await resp.json() as unknown;
                 item.metadata = json;
-                item.name = json?.name;
-                item.description = json?.description;
-                item.image = json?.image;
-              } catch (mErr: any) {
-                item.error = (item.error ? item.error + '; ' : '') + (mErr?.message || 'metadata fetch failed');
+                if (json && typeof json === 'object') {
+                  const metaObj = json as Record<string, unknown>;
+                  item.name = typeof metaObj.name === 'string' ? metaObj.name : undefined;
+                  item.description = typeof metaObj.description === 'string' ? metaObj.description : undefined;
+                  item.image = typeof metaObj.image === 'string' ? metaObj.image : undefined;
+                }
+              } catch (mErr: unknown) {
+                const msg =
+                  typeof mErr === 'object' && mErr && 'message' in mErr
+                    ? String((mErr as { message?: unknown }).message)
+                    : 'metadata fetch failed';
+                item.error = (item.error ? item.error + '; ' : '') + msg;
               }
             }
 
@@ -154,25 +167,35 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
                 const [supply, max] = await Promise.all([
                   publicClient.readContract({
                     address: CONTRACT_ADDRESS as `0x${string}`,
-                    abi: ABI as any,
+                    abi: contractAbi,
                     functionName: 'totalSupply',
                     args: [BigInt(id)],
                   }) as Promise<bigint>,
                   publicClient.readContract({
                     address: CONTRACT_ADDRESS as `0x${string}`,
-                    abi: ABI as any,
+                    abi: contractAbi,
                     functionName: 'maxTotalSupply',
                     args: [BigInt(id)],
                   }) as Promise<bigint>,
                 ]);
                 item.totalSupply = supply;
                 item.maxTotalSupply = max;
-              } catch (sErr: any) {
-                item.error = (item.error ? item.error + '; ' : '') + (sErr?.message || 'supply fetch failed');
+              } catch (sErr: unknown) {
+                const msg =
+                  typeof sErr === 'object' && sErr && 'message' in sErr
+                    ? String((sErr as { message?: unknown }).message)
+                    : 'supply fetch failed';
+                item.error = (item.error ? item.error + '; ' : '') + msg;
               }
             }
-          } catch (outer: any) {
-            item.error = item.error || (outer?.message || 'failed');
+          } catch (outer: unknown) {
+            if (!item.error) {
+              const msg =
+                typeof outer === 'object' && outer && 'message' in outer
+                  ? String((outer as { message?: unknown }).message)
+                  : 'failed';
+              item.error = msg;
+            }
           }
           resMap.set(id, item);
         }
@@ -184,20 +207,24 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
       const merged = idsRange.map(id => resMap.get(id) || { id, error: 'Missing result' });
 
       setItems(prev => {
-        if (replace) return merged; // first page
+        if (replace) return merged;
         const map = new Map<number, NFTSeriesItem>();
         [...prev, ...merged].forEach(it => map.set(it.id, it));
         return Array.from(map.values()).sort((a, b) => a.id - b.id);
       });
       setHasMore(endExclusive < minted);
       setPage(targetPage);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load NFT series');
+    } catch (e: unknown) {
+      const msg =
+        typeof e === 'object' && e && 'message' in e
+          ? String((e as { message?: unknown }).message)
+          : 'Failed to load NFT series';
+      setError(msg);
     } finally {
       setLoading(false);
       setLoadingPage(false);
     }
-  }, [publicClient, totalMinted, pageSize, fetchMetadata, includeSupply, concurrency]);
+  }, [publicClient, totalMinted, pageSize, fetchMetadata, includeSupply, concurrency, fetchNextTokenId]);
 
   const refresh = useCallback(async () => {
     if (!publicClient) return;

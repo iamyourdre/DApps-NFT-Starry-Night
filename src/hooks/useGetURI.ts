@@ -10,19 +10,29 @@ interface UseGetURIProps {
   _tokenId: number | undefined;
 }
 
+interface TokenMetadata {
+  name?: string;
+  description?: string;
+  image?: string;
+  animation_url?: string;
+  attributes?: unknown;
+  [key: string]: unknown;
+}
+
 export function useGetURI({
   _tokenId
 }: UseGetURIProps) {
-	const [data, setData] = useState<any>(null);
+	const [data, setData] = useState<TokenMetadata | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const publicClient = usePublicClient();
 
 	useEffect(() => {
     if(_tokenId === undefined || _tokenId === null || !publicClient) return;
-		setLoading(true);
-		setError(null);
+		let cancelled = false;
 			(async () => {
+				setLoading(true);
+				setError(null);
 				try {
           let uri = await publicClient.readContract({
             address: CONTRACT_ADDRESS as `0x${string}`,
@@ -32,14 +42,21 @@ export function useGetURI({
           }) as string;
           uri = ipfsToHttp(uri);
           const res = await fetch(uri);
-          const json = await res.json();
-          setData(json);
-				} catch (err: any) {
-					setError(err.message || 'Failed to fetch contractURI');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json() as TokenMetadata;
+          if (!cancelled) setData(json);
+				} catch (err: unknown) {
+					if (cancelled) return;
+					const msg =
+          (typeof err === 'object' && err && 'message' in err)
+            ? String((err as { message?: unknown }).message)
+            : 'Failed to fetch token URI';
+          setError(msg);
 				} finally {
-					setLoading(false);
+					if (!cancelled) setLoading(false);
 				}
 			})();
+		return () => { cancelled = true; };
 	}, [_tokenId, publicClient]);
 
 	return { data, loading, error };

@@ -1,13 +1,10 @@
 'use client';
 import Hero from "@/components/templates/Hero";
 import LoadingPage from "@/components/templates/LoadingPage";
-import ConnectWallet from "@/components/web3/ConnectWallet";
-import WagmiContextProvider from "@/components/wrapper/WagmiContextProvider";
 import { useGetContractURI } from "@/hooks/useGetContractURI";
-import { useGetURI } from "@/hooks/useGetURI";
 import Error from "next/error";
 import { toast } from "sonner";
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 
 export default function Home() {
   const {data, loading, error} = useGetContractURI();

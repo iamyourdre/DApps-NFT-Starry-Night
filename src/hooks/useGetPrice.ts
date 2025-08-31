@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { usePublicClient } from 'wagmi';
 import { formatEther } from 'viem';
 import ABI from '../config/ABI.json';
@@ -22,6 +22,16 @@ interface UseGetPriceParams {
   tokenId: number; // ERC1155 token id
 }
 
+interface ClaimCondition {
+  startTimestamp: bigint;
+  maxClaimableSupply: bigint;
+  supplyClaimed: bigint;
+  quantityLimitPerWallet: bigint;
+  pricePerToken: bigint;
+  currency: `0x${string}`;
+  [key: string]: unknown;
+}
+
 // Zero address helper (native token)
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -37,32 +47,31 @@ export function useGetPrice({ tokenId }: UseGetPriceParams): UseGetPriceResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!publicClient || CONTRACT_ADDRESS === '') return;
     setLoading(true);
     setError(null);
     try {
       const activeId = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: ABI as any,
+        abi: ABI,
         functionName: 'getActiveClaimConditionId',
         args: [BigInt(tokenId)],
       }) as bigint;
 
-      const condition: any = await publicClient.readContract({
+      const condition = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: ABI as any,
+        abi: ABI,
         functionName: 'getClaimConditionById',
         args: [BigInt(tokenId), activeId],
-      });
+      }) as ClaimCondition;
 
-      // Because ABI returns a struct, viem should give an object with named properties
-      const startTs: bigint = condition.startTimestamp;
-      const maxSupply: bigint = condition.maxClaimableSupply;
-      const claimed: bigint = condition.supplyClaimed;
-      const perWallet: bigint = condition.quantityLimitPerWallet;
-      const pricePerToken: bigint = condition.pricePerToken;
-      const currencyAddr: `0x${string}` = condition.currency;
+      const startTs = condition.startTimestamp;
+      const maxSupply = condition.maxClaimableSupply;
+      const claimed = condition.supplyClaimed;
+      const perWallet = condition.quantityLimitPerWallet;
+      const pricePerToken = condition.pricePerToken;
+      const currencyAddr = condition.currency;
 
       setStartTimestamp(startTs);
       setMaxClaimableSupply(maxSupply);
@@ -71,23 +80,24 @@ export function useGetPrice({ tokenId }: UseGetPriceParams): UseGetPriceResult {
       setRawPrice(pricePerToken);
       setCurrency(currencyAddr);
 
-      // Assume 18 decimals for native or standard ERC20. For differing decimals, you'd need to call decimals() on the currency contract when currency != ZERO_ADDRESS.
-      const human = formatEther(pricePerToken);
-      setPrice(human);
-    } catch (e: any) {
-      setError(e.message || 'Failed to fetch price');
+      setPrice(formatEther(pricePerToken));
+    } catch (e: unknown) {
+      const msg =
+        typeof e === 'object' && e && 'message' in e
+          ? String((e as { message?: unknown }).message)
+          : 'Failed to fetch price';
+      setError(msg);
       setRawPrice(null);
       setPrice(null);
       setCurrency(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [publicClient, tokenId]);
 
   useEffect(() => {
     fetchData();
-    // We intentionally only re-run on tokenId/publicClient changes.
-  }, [tokenId, publicClient]);
+  }, [fetchData]);
 
   return {
     price,
