@@ -22,7 +22,7 @@ interface NFTDemoProps {
     price_amount?: string;
     supply?: string;
   } | null;
-  quantity: bigint | number;
+  quantity: bigint | number | undefined;
 }
 
 export function NFTDemo(
@@ -100,7 +100,7 @@ export function NFTDemo(
             transition: 'background-position 120ms ease'
           }}
         />
-        {quantity > 1 ? (
+        {quantity && quantity > 1 ? (
           <div className="absolute top-2 left-3 pointer-events-none select-none">
             <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-medium shadow-md/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               x{quantity}
