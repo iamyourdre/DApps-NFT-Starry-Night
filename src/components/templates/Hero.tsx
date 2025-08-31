@@ -1,22 +1,28 @@
 'use client';
 import React, { useEffect } from 'react';
 import { Button } from '../ui/button';
-import { Github, ScanSearch } from 'lucide-react';
-import { useGetContractURI } from '@/hooks/useGetContractURI';
+import { ScanSearch } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { NFTDemo } from '../organisms/NFTDemo';
 import { useGetURI } from '@/hooks/useGetURI';
 import Loading from '../atoms/Loading';
 import { toast } from 'sonner';
 
-const Hero = ({contractData, contractLoading} : 
-  {contractData: any, contractLoading: boolean}
-) => {
+interface ContractData {
+  name?: string;
+  symbol?: string;
+}
+
+const Hero = ({ contractData }: { contractData?: ContractData | null }) => {
   const highlightedId = 0;
-  const {data: nftData, loading: nftLoading, error: nftError} = useGetURI({ _tokenId: highlightedId });
-  if (nftError) {
-    toast.error('Failed to load NFT data. Please try again later.');
-  }
+  const { data: nftData, loading: nftLoading, error: nftError } = useGetURI({ _tokenId: highlightedId });
+
+  useEffect(() => {
+    if (nftError) {
+      toast.error('Failed to load NFT data. Please try again later.');
+    }
+  }, [nftError]);
+
   return (
     <div className="box">
       <div className="grid grid-cols-10 gap-12 lg:gap-20">

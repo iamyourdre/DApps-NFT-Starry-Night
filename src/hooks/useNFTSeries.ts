@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react'; // removed useMemo
 import { usePublicClient } from 'wagmi';
 import type { Abi } from 'viem';
 import ABI from '../config/ABI.json';
@@ -119,9 +119,9 @@ export function useNFTSeries(options: UseNFTSeriesOptions = {}): UseNFTSeriesRet
       async function worker() {
         while (queue.length) {
           const id = queue.shift();
-            if (id === undefined) break;
+          if (id === undefined) break;
           if (!publicClient) break;
-          let item: NFTSeriesItem = { id };
+          const item: NFTSeriesItem = { id }; // prefer const (no reassignment)
           try {
             // uri
             let uriRaw: string | null = null;

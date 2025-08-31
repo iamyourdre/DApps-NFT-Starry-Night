@@ -55,7 +55,7 @@ export default function CollectionsPage() {
       )}
 
       {mounted && isConnected && !loading && !error && items.length === 0 && (
-        <div className="text-sm text-muted-foreground">You don't own any NFTs from this collection yet.</div>
+        <div className="text-sm text-muted-foreground">You don&apos;t own any NFTs from this collection yet.</div>
       )}
 
       {mounted && isConnected && items.length > 0 && (

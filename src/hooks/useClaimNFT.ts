@@ -88,9 +88,8 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
       };
 
       // Sanity debug (remove in prod)
-      // eslint-disable-next-line no-console
-    const isNative = payCurrency === ZERO_ADDRESS || payCurrency.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-    console.debug('[claim] condition', { activeId: activeId.toString(), perTokenWei: perTokenWei.toString(), payCurrency, isNative, quantity: quantity.toString(), receiver });
+      const isNative = payCurrency === ZERO_ADDRESS || payCurrency.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+      console.debug('[claim] condition', { activeId: activeId.toString(), perTokenWei: perTokenWei.toString(), payCurrency, isNative, quantity: quantity.toString(), receiver });
 
   const value = isNative ? perTokenWei * quantity : BigInt(0);
 
@@ -113,7 +112,6 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
           account: address as `0x${string}`,
         });
       } catch (simErr: unknown) {
-        // eslint-disable-next-line no-console
         console.error('[claim] simulate failed', simErr);
         const simMsg =
           typeof simErr === 'object' && simErr !== null && 'shortMessage' in simErr
@@ -147,7 +145,6 @@ export function useClaimNFT({ tokenId }: UseClaimNFTArgs) {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status === 'success') setIsSuccess(true); else setError('Transaction failed');
     } catch (e: unknown) {
-      // eslint-disable-next-line no-console
       console.error('[claim] error', e);
       let msg = '';
       if (typeof e === 'object' && e !== null) {

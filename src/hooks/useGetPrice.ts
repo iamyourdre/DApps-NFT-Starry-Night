@@ -32,9 +32,6 @@ interface ClaimCondition {
   [key: string]: unknown;
 }
 
-// Zero address helper (native token)
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
 export function useGetPrice({ tokenId }: UseGetPriceParams): UseGetPriceResult {
   const publicClient = usePublicClient();
   const [rawPrice, setRawPrice] = useState<bigint | null>(null);

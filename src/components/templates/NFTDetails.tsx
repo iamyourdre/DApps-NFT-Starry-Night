@@ -1,10 +1,10 @@
 'use client';
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ipfsToHttp } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useClaimNFT } from "@/hooks/useClaimNFT";
 import { toast } from 'sonner';

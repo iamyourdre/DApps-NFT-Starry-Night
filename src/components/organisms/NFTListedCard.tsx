@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { Card, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { ipfsToHttp } from '@/lib/utils';
@@ -41,7 +41,7 @@ export function NFTListedCard({ id, name, image, totalSupply, maxTotalSupply }: 
     if (isSuccess) {
       toast.success(`Successfully claimed ${name || 'NFT'}!`, { id: toastIdRef.current || `claim-${id}` });
     }
-  }, [isSuccess, id]);
+  }, [isSuccess, id, name]);
 
   const handleMove = useCallback((e: React.PointerEvent) => {
     const el = ref.current; if (!el) return;
@@ -49,9 +49,20 @@ export function NFTListedCard({ id, name, image, totalSupply, maxTotalSupply }: 
     const x = e.clientX - r.left, y = e.clientY - r.top;
     const rx = -(y / r.height - 0.5) * 12;
     const ry = (x / r.width - 0.5) * 12;
-    setStyle({ transform: `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`, '--x': `${(x/r.width)*100}%`, '--y': `${(y/r.height)*100}%` } as any);
+    setStyle({
+      transform: `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`,
+      '--x': `${(x / r.width) * 100}%`,
+      '--y': `${(y / r.height) * 100}%`,
+    } as React.CSSProperties);
   }, []);
-  const handleLeave = useCallback(() => setStyle({ transform: 'rotateX(0deg) rotateY(0deg) scale(1)', '--x': '50%', '--y': '50%' } as any), []);
+  const handleLeave = useCallback(
+    () =>
+      setStyle({
+        transform: 'rotateX(0deg) rotateY(0deg) scale(1)',
+        '--x': '50%',
+        '--y': '50%',
+      } as React.CSSProperties), []
+  );
 
   const progress = (totalSupply != null && maxTotalSupply && maxTotalSupply > BigInt(0))
     ? Number((totalSupply * BigInt(10000)) / maxTotalSupply) / 100

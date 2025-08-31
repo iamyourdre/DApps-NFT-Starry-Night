@@ -14,13 +14,13 @@ import { useGetPrice } from "@/hooks/useGetPrice";
 
 interface NFTDemoProps {
   id: number;
-  data: {
+  data?: {
     name?: string;
     description?: string;
     image?: string;
     price_amount?: string;
     supply?: string;
-  } | undefined;
+  } | null; // allow null
 }
 
 export function NFTDemo(
@@ -55,7 +55,7 @@ export function NFTDemo(
     } as React.CSSProperties);
   }, []);
 
-  const { price, loading: priceLoading, error: priceError } = useGetPrice({ tokenId: id });
+  const { price, loading: priceLoading } = useGetPrice({ tokenId: id }); // removed unused error to fix lint
 
   return (
     <div
