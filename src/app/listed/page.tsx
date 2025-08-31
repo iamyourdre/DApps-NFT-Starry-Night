@@ -15,7 +15,9 @@ export default function ListedPage() {
     <div className="box py-24 space-y-10">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className='space-y-1'>
-          <h1 className="text-3xl font-bold">All NFTs</h1>
+          <h1 className="text-3xl font-bold">
+            NFT Marketplace
+          </h1>
           <p className="text-sm text-muted-foreground">Browse every minted token in this drop series.</p>
         </div>
         <div className="flex items-center gap-3">

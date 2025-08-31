@@ -56,9 +56,9 @@ const Navbar = ({
       items: [
         {
           title: "GitHub",
-          description: "Explore our source code and contribute",
+          description: "Explore the source code on GitHub",
           icon: <Github className="size-5 shrink-0" />,
-          url: "#",
+          url: "https://github.com/iamyourdre/NFT-Starry-Night",
         },
       ],
     },
@@ -76,7 +76,7 @@ const Navbar = ({
           title: "Email",
           description: "Get in touch via email",
           icon: <Mail className="size-5 shrink-0" />,
-          url: "https://twitter.com/iamyourdre",
+          url: "mailto:adriansutansaty260403@gmail.com",
         },
       ],
     },

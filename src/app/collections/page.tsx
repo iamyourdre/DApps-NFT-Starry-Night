@@ -15,7 +15,7 @@ export default function CollectionsPage() {
     <div className="box py-24 space-y-10">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className='space-y-1'>
-          <h1 className="text-3xl font-bold">My Collections</h1>
+          <h1 className="text-3xl font-bold">My NFTs</h1>
             <p className="text-sm text-muted-foreground">
             Discover and cherish your unique NFT in your collection.
             </p>

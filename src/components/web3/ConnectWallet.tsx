@@ -103,10 +103,12 @@ const ConnectWallet = ({
           <div className='grid grid-cols-2 gap-2'>
             <Button 
             className='col-span-2 bg-white'
-              onClick={() => window.open('/collections')}
               disabled={!address}
+              asChild
             >
-              <SquareLibrary /> My Collections
+              <a href="/collections">
+                <SquareLibrary /> My Collections
+              </a>
             </Button>
             <Button 
               onClick={() => {

@@ -19,10 +19,10 @@ export default function Home() {
 
   if (data) {
     return (
-      <div className="bg-cover"
-        style={{ backgroundImage: `url('images/grainy-blur.png')` }}
+      <div className="bg-cover bg-right"
+        style={{ backgroundImage: `url('/images/codioful-formerly-gradienta-IAeyspe9YEo-unsplash.jpg')` }}
       >
-        <div className="bg-background/60 w-full h-full min-h-screen pt-30">
+        <div className="bg-background/60 w-full h-full min-h-screen py-30 backdrop-blur-md">
           <Hero 
             contractData={data}
             contractLoading={loading}
