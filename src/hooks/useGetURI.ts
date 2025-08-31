@@ -15,7 +15,12 @@ interface TokenMetadata {
   description?: string;
   image?: string;
   animation_url?: string;
-  attributes?: unknown;
+  // ERC-721 / 1155 common metadata attributes array
+  attributes?: Array<{ trait_type?: string; value?: string | number }>; 
+  // Optional pricing & supply fields if backend / metadata includes them
+  price_amount?: string;
+  price_currency?: string;
+  supply?: string;
   [key: string]: unknown;
 }
 
