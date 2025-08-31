@@ -1,4 +1,4 @@
-import { Book, Github, Linkedin, Mail, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Github, Linkedin, Mail, Menu } from "lucide-react";
 
 import {
   Accordion,
