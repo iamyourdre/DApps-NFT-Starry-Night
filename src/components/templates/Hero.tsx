@@ -33,8 +33,8 @@ const Hero = ({contractData, contractLoading} :
             </h2>
           </div>
           <Button className="py-6 rounded-full px-6!" asChild>
-            <a href="/collections">
-              <ScanSearch /> Explore Collections
+            <a href="/listed">
+              <ScanSearch /> Explore NFTs
             </a>
           </Button>
         </div>

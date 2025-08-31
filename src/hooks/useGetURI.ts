@@ -4,7 +4,6 @@ import { usePublicClient } from 'wagmi';
 import ABI from '../config/ABI.json';
 import { ipfsToHttp } from '../lib/utils';
 
-// Make sure NEXT_PUBLIC_CONTRACT_ADDRESS is set in your .env file
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
 
 interface UseGetURIProps {

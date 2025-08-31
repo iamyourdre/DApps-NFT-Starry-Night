@@ -35,7 +35,7 @@ export function useUserCollections(options: UseUserCollectionsOptions = {}) {
     setLoading(true);
     setError(null);
     try {
-      // 1. Get nextTokenIdToMint to know range of token IDs
+      // 1. Get nextTokenIdToMint to know range of token ID
       const nextId = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
         abi: ABI as any,
@@ -99,7 +99,7 @@ export function useUserCollections(options: UseUserCollectionsOptions = {}) {
               const res = await fetch(uri);
               json = await res.json();
             } catch (fetchErr) {
-              // ignore fetch error; still return minimal item
+              // ignore fetch error, still return minimal item
             }
             results.push({
               id: current.id,

@@ -49,6 +49,7 @@ const Navbar = ({
   },
   menu = [
     { title: "Home", url: "/" },
+    { title: "Explore", url: "/listed" },
     {
       title: "Docs",
       url: "#",

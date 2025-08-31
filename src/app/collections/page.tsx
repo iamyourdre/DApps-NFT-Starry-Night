@@ -1,7 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useUserCollections } from '@/hooks/useUserCollections';
-import { useAccount } from 'wagmi';
 import { NFTDemo } from '@/components/organisms/NFTDemo';
 import Loading from '@/components/atoms/Loading';
 import { LoaderCircle, RefreshCcw } from 'lucide-react'; 
@@ -13,7 +12,7 @@ export default function CollectionsPage() {
   useEffect(() => { setMounted(true); }, []);
 
   return (
-    <div className="box pt-24 space-y-10">
+    <div className="box py-24 space-y-10">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className='space-y-1'>
           <h1 className="text-3xl font-bold">My Collections</h1>
@@ -38,7 +37,11 @@ export default function CollectionsPage() {
       </header>
 
       {!mounted && (
-        <><Loading /></>
+        <div className="flex justify-center py-10"><Loading /></div>
+      )}
+      
+      {mounted && loading && (
+        <div className="flex justify-center py-10"><Loading /></div>
       )}
 
       {mounted && !isConnected && (

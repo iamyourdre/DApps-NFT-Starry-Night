@@ -78,6 +78,9 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
   // On-chain dynamic claim condition price
   const { price, loading: priceLoading, error: priceErr, maxClaimableSupply, supplyClaimed } = useGetPrice({ tokenId: data.tokenId });
   const remaining = (maxClaimableSupply && supplyClaimed !== null) ? (maxClaimableSupply - supplyClaimed) : null;
+  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+  const explorerBase = 'https://sepolia.etherscan.io'; // adjust if deploying to another chain
+  const tokenExplorerUrl = contractAddress ? `${explorerBase}/token/${contractAddress}?a=${data.tokenId}` : undefined;
 
   return (
     <div className="grid lg:grid-cols-2 gap-10">
@@ -137,10 +140,22 @@ export default function NFTDetails({ data }: NFTDetailsProps) {
                 </Button>
               </CollapsibleTrigger>
             </div>
-            <CollapsibleContent className="mt-2 data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down">
+            <CollapsibleContent className="mt-2 data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down flex flex-col gap-4">
               <div className="prose prose-invert max-w-none text-sm leading-relaxed whitespace-pre-wrap">
                 {data.description || '—'}
               </div>
+              {tokenExplorerUrl && (
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(tokenExplorerUrl, '_blank')}
+                  >
+                    View on Explorer
+                  </Button>
+                </div>
+              )}
             </CollapsibleContent>
           </Collapsible>
         </CardContent>
