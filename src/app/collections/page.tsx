@@ -68,6 +68,7 @@ export default function CollectionsPage() {
                 id={item.id}
                 data={data}
                 quantity={item.balance}
+                showQuantityWhenOne
               />
             );
           })}

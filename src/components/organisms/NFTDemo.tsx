@@ -22,11 +22,12 @@ interface NFTDemoProps {
     price_amount?: string;
     supply?: string;
   } | null;
-  quantity: bigint | number | undefined;
+  quantity?: bigint | number; // optional owned balance (ERC-1155); for ERC-721 will usually be 1
+  showQuantityWhenOne?: boolean; // show badge even when quantity === 1
 }
 
 export function NFTDemo(
-  { id, data, quantity }: NFTDemoProps
+  { id, data, quantity, showQuantityWhenOne = false }: NFTDemoProps
 ) {
   const imageUrl = ipfsToHttp(data?.image || '');
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -100,14 +101,24 @@ export function NFTDemo(
             transition: 'background-position 120ms ease'
           }}
         />
-        {quantity && quantity > 1 ? (
-          <div className="absolute top-2 left-3 pointer-events-none select-none">
-            <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-medium shadow-md/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              x{quantity}
-              <span className="sr-only">Quantity owned: {quantity}</span>
-            </Badge>
-          </div>
-        ): null}
+        {(() => {
+          if (quantity === undefined) return null;
+          const qtyNum = typeof quantity === 'bigint' ? Number(quantity) : quantity;
+          if (!Number.isFinite(qtyNum)) return null;
+            // Show if greater than 1, or when explicitly requested to show 1
+          if (qtyNum > 1 || (showQuantityWhenOne && qtyNum >= 1)) {
+            const display = qtyNum > 999 ? '999+' : qtyNum.toString();
+            return (
+              <div className="absolute top-2 left-3 pointer-events-none select-none">
+                <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-medium shadow-md/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  x{display}
+                  <span className="sr-only">Quantity owned: {display}</span>
+                </Badge>
+              </div>
+            );
+          }
+          return null;
+        })()}
         {imageUrl && (
           <Image
             src={imageUrl}
