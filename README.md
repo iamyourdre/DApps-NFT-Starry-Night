@@ -1,4 +1,4 @@
-# NFT Starry Night
+# DApps NFT Starry Night Edition Drop
 
 > A narrative-driven ERC‑1155 Drop dApp for claiming and exploring limited digital collectibles.
 
