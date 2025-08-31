@@ -11,6 +11,7 @@ import Image from "next/image";
 import Loading from "../atoms/Loading";
 import { useRef, useState, useCallback } from "react";
 import { useGetPrice } from "@/hooks/useGetPrice";
+import { Badge } from "../ui/badge";
 
 interface NFTDemoProps {
   id: number;
@@ -20,11 +21,12 @@ interface NFTDemoProps {
     image?: string;
     price_amount?: string;
     supply?: string;
-  } | null; // allow null
+  } | null;
+  quantity: bigint | number;
 }
 
 export function NFTDemo(
-  { id, data }: NFTDemoProps
+  { id, data, quantity }: NFTDemoProps
 ) {
   const imageUrl = ipfsToHttp(data?.image || '');
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -98,6 +100,14 @@ export function NFTDemo(
             transition: 'background-position 120ms ease'
           }}
         />
+        {quantity > 1 ? (
+          <div className="absolute top-2 left-3 pointer-events-none select-none">
+            <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-medium shadow-md/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              x{quantity}
+              <span className="sr-only">Quantity owned: {quantity}</span>
+            </Badge>
+          </div>
+        ): null}
         {imageUrl && (
           <Image
             src={imageUrl}

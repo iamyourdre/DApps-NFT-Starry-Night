@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useUserCollections } from '@/hooks/useUserCollections';
 import { NFTDemo } from '@/components/organisms/NFTDemo';
+import OwnedNFTCard from '@/components/organisms/OwnedNFTCard';
 import Loading from '@/components/atoms/Loading';
 import { LoaderCircle, RefreshCcw } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
@@ -60,9 +61,17 @@ export default function CollectionsPage() {
 
       {mounted && isConnected && items.length > 0 && (
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {items.map(item => (
-            <NFTDemo key={item.id} id={item.id} data={{ name: item.name, description: item.description, image: item.image }} />
-          ))}
+          {items.map(item => {
+            const data = { name: item.name, description: item.description, image: item.image };
+            return (
+              <OwnedNFTCard
+                key={item.id}
+                id={item.id}
+                data={data}
+                quantity={item.balance}
+              />
+            );
+          })}
         </div>
       )}
     </div>
