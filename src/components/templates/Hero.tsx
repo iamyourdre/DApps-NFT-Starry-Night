@@ -13,7 +13,12 @@ interface ContractData {
   symbol?: string;
 }
 
-const Hero = ({ contractData }: { contractData?: ContractData | null }) => {
+interface HeroProps {
+  contractData?: ContractData | null;
+  contractLoading?: boolean;
+}
+
+const Hero = ({ contractData, contractLoading }: HeroProps) => {
   const highlightedId = 0;
   const { data: nftData, loading: nftLoading, error: nftError } = useGetURI({ _tokenId: highlightedId });
 
@@ -22,6 +27,11 @@ const Hero = ({ contractData }: { contractData?: ContractData | null }) => {
       toast.error('Failed to load NFT data. Please try again later.');
     }
   }, [nftError]);
+
+  // Fallback: if explicitly told still loading & no data yet, show spinner
+  if (contractLoading && !contractData) {
+    return <Loading />;
+  }
 
   return (
     <div className="box">
@@ -40,7 +50,7 @@ const Hero = ({ contractData }: { contractData?: ContractData | null }) => {
           </div>
           <Button className="py-6 rounded-full px-6!" asChild>
             <a href="/listed">
-              <ScanSearch /> Explore NFTs
+              <ScanSearch /> Explore NFT
             </a>
           </Button>
         </div>
